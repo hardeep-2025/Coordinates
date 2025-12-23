@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./Home.css";
+import {
+  FaArrowUp,
+  FaArrowLeft,
+  FaArrowRight,
+  FaUndo,
+  FaDirections
+} from "react-icons/fa";
+
 import { Autocomplete, GoogleMap, LoadScript } from "@react-google-maps/api";
 import {
   Box,
@@ -40,6 +48,7 @@ const Home = () => {
   const dispatch = useDispatch();
 
   // UI state
+  const [ActiveShow, setActiveShow] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
 
@@ -57,6 +66,7 @@ const Home = () => {
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
   const [routesList, setRoutesList] = useState([]);
+  const [stepRouteList , setStepRouteList] = useState([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [latestDirectionsResults, setLatestDirectionsResults] = useState(null);
 
@@ -139,6 +149,40 @@ const Home = () => {
       }
     });
   }, []);
+      const getManeuverIcon = (maneuver) => {
+      switch (maneuver) {
+        case "turn-left":
+        case "turn-slight-left":
+        case "turn-sharp-left":
+          return <FaArrowLeft />;
+
+        case "turn-right":
+        case "turn-slight-right":
+        case "turn-sharp-right":
+          return <FaArrowRight />;
+
+        case "uturn-left":
+        case "uturn-right":
+          return <FaUndo />;
+
+        case "straight":
+          return <FaArrowUp />;
+
+        case "keep-left":
+          return <FaArrowLeft />;
+
+        case "keep-right":
+          return <FaArrowRight />;
+
+        case "roundabout-left":
+        case "roundabout-right":
+          return <FaDirections />;
+
+        default:
+          return <FaArrowUp />;
+      }
+    };
+
 
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) return;
@@ -337,6 +381,23 @@ const Home = () => {
       // set routesList (simple summary)
       const extractedRoutes = results.routes.map((route, index) => ({ index, distance: route.legs[0].distance.text, duration: route.legs[0].duration.text, summary: route.summary }));
       setRoutesList(extractedRoutes);
+      
+
+
+
+      // steps.forEach((step, index) => {
+      //   console.log(`Step ${index + 1}`);
+      //   console.log(step);
+      //   console.log("Instruction:", step.instructions);
+      //   console.log("Distance:", step.distance.text);
+      //   console.log("Duration:", step.duration.text);
+      //   console.log("Maneuver:", step.maneuver || "N/A");
+      //   console.log("Start:", step.start_location);
+      //   console.log("End:", step.end_location);
+      //   console.log("----------------------");
+      // });
+
+      
 
       // render start/end markers using DirectionsRenderer (suppresses polylines)
       renderStartEndMarkers(results);
@@ -355,6 +416,13 @@ const Home = () => {
       setLoadingData(false);
     });
   };
+      // console.log(latestDirectionsResults);
+
+  function handleStepChoice(id){
+          const steps = latestDirectionsResults.routes[0].legs[0].steps;
+         setStepRouteList(steps)
+    
+  }
 
   // --- geocode helper for PDF coordinates ---
   const geocodeAddress = (address) =>
@@ -653,6 +721,7 @@ const Home = () => {
           </Button>
 
           <div className="sidebar_box_div">
+            {ActiveShow ? <div></div>:
             <div className="sidebar_box_columns">
               <p className="sidebar_heading">"A smarter way to navigate — real-time routes</p>
 
@@ -698,20 +767,33 @@ const Home = () => {
                   <Button onClick={() => { if (file) modalForm.onOpen(); else toast({ description: "Error: Please upload PDF.", position: "top", status: "error", duration: 2500, isClosable: true }); }} className="table_form_data" variant="outline">Form Data</Button>
                 </Box>
               </Stack>
-            </div>
+            </div>}
+            {ActiveShow ? <div></div>:
 
             <div className="sidebar_box_columns border-top">
               {routesList && routesList.length >= 1 ? (
                 routesList.map((r) => (
-                  <div key={r.index} onClick={() => handleSelectRoute(r.index)} style={{ 
-                      padding: "10px", 
+                  <div key={r.index} className="slide_box_columns_route_Container" style={{
+                   borderLeft: selectedRouteIndex === r.index ? "5px solid #0d53ff" : "none", 
+                  }}>
+                  <div key={r.index} onClick={() => handleSelectRoute(r.index)  }
+                  className="slide_box_columns_route"
+                  style={{ 
+                      // paddingBottom:"10px", 
                       cursor: "pointer", 
-                      marginBottom: "10px", 
                       // background: selectedRouteIndex === r.index ? "#0d53ff" : "#fff", 
-                      color: selectedRouteIndex === r.index ? "#0d53ff" : "#000", 
+                      color: selectedRouteIndex === r.index ? "#105DA2" : "#000", 
+                      fontFamily: selectedRouteIndex === r.index ?"Montserrat-Bold":"Montserrat-Medium", 
                       // border: selectedRouteIndex === r.index ? "1px solid #0d53ff" : "none"
                     }}>
-                    <strong>{r.summary}</strong><br /> {r.distance} — {r.duration}
+                    <strong>{r.summary}</strong><br /> <div>  {r.duration} <br /> <span className="distanceSpan">{r.distance}</span></div>
+
+                  </div >
+                    {
+                      selectedRouteIndex === r.index ? <button className="slide_box_columns_route_btn" type="button" onClick={()=>{setActiveShow(!ActiveShow)
+                        handleStepChoice(r.index)
+                      }}> Details</button>:<span></span>
+                    }
                   </div>
                 ))
               ) : (
@@ -724,7 +806,37 @@ const Home = () => {
               )}
 
               
+
+            </div>}
+            {ActiveShow ? 
+
+         <div>
+          {routesList.map((r) => (
+            <div>
+              <h1 onClick={()=>{setActiveShow(!ActiveShow)}}><strong>{r.summary}</strong></h1>
             </div>
+          ))}
+
+                {
+                  stepRouteList.map((step, index) => (
+                  <div key={index} className="stepMainDev">
+                    <div className="stepDivIcon" style={{ fontSize: "20px" }}>
+                      {getManeuverIcon(step.maneuver)}
+                    </div>
+                    <div className="stepDivForText">
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: step.instructions
+                      }}
+                    />
+                    <p className="Duration"> {step.duration.text}</p>
+                    <p className="Distance"> {step.distance.text}</p>
+                    </div>
+                  </div>
+                ))
+              }
+
+            </div>:<div></div>}
           </div>
         </div>
 
