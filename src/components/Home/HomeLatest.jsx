@@ -377,6 +377,8 @@ const Home = () => {
       }
 
       setLatestDirectionsResults(results);
+      console.log(results);
+      
 
       // set routesList (simple summary)
       const extractedRoutes = results.routes.map((route, index) => ({ index, distance: route.legs[0].distance.text, duration: route.legs[0].duration.text, summary: route.summary }));
@@ -404,6 +406,7 @@ const Home = () => {
 
       // draw polylines and wire clicks
       drawPolylinesForResults(results);
+      
 
       // default: show markers for first route and set distance/duration
       if (results.routes && results.routes[0]) {
@@ -421,6 +424,8 @@ const Home = () => {
   function handleStepChoice(id){
           const steps = latestDirectionsResults.routes[0].legs[0].steps;
          setStepRouteList(steps)
+               console.log(latestDirectionsResults.request.origin);
+
     
   }
 
