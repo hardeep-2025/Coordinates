@@ -267,6 +267,7 @@ button.calculate_route:hover {
     font-size: 14px;
 
 }
+
 .slide_box_columns_route > div{
     width: 45%;
     /* font-family: "Montserrat-Medium"; */
@@ -327,6 +328,19 @@ p.Duration ,p.Distance {
 .show{
     display: show;
 }
-#412D143E-BA83-48A2-9856-8C167AFC014C{
-    display: none !important;
+
+
+
+
+/*  */
+.DetailsPageHeading strong {
+    padding: 20px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    text-transform: capitalize;
+}
+.DetailsPageHeading {
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05);
+    color: rgba(91, 87, 86, 1);
 }

@@ -224,7 +224,7 @@ const Home = () => {
 
         const info = new window.google.maps.InfoWindow({
           content: `
-            <div style="font-size:14px; max-width:240px">
+            <div className='PopupShowTurn' style="font-size:14px; max-width:240px">
               <strong>${step.instructions}</strong><br/>
               ${step.distance?.text || ""} • ${step.duration?.text || ""}
             </div>
@@ -232,7 +232,7 @@ const Home = () => {
         });
 
         marker.addListener("mouseover", () => info.open(mapRef.current, marker));
-        marker.addListener("mouseout", () => info.close());
+        // marker.addListener("mouseout", () => info.close());
 
         turnMarkersRef.current.push(marker);
       }
@@ -377,12 +377,14 @@ const Home = () => {
       }
 
       setLatestDirectionsResults(results);
-      console.log(results);
+      console.log(results.request.origin.query);
       
 
       // set routesList (simple summary)
       const extractedRoutes = results.routes.map((route, index) => ({ index, distance: route.legs[0].distance.text, duration: route.legs[0].duration.text, summary: route.summary }));
       setRoutesList(extractedRoutes);
+      
+      console.log(routesList);
       
 
 
@@ -422,7 +424,7 @@ const Home = () => {
       // console.log(latestDirectionsResults);
 
   function handleStepChoice(id){
-          const steps = latestDirectionsResults.routes[0].legs[0].steps;
+          const steps = latestDirectionsResults.routes[id].legs[0].steps;
          setStepRouteList(steps)
                console.log(latestDirectionsResults.request.origin);
 
@@ -795,9 +797,16 @@ const Home = () => {
 
                   </div >
                     {
-                      selectedRouteIndex === r.index ? <button className="slide_box_columns_route_btn" type="button" onClick={()=>{setActiveShow(!ActiveShow)
-                        handleStepChoice(r.index)
-                      }}> Details</button>:<span></span>
+                      selectedRouteIndex === r.index ? <button className="slide_box_columns_route_btn" type="button" onClick={() => {
+                          setActiveShow(!ActiveShow);
+                          handleStepChoice(r.index);
+                          
+                          // Delay by 0-10ms to let React finish the render
+                          setTimeout(() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }, 0);
+                        }}
+                            > Details</button>:<span></span>
                     }
                   </div>
                 ))
@@ -816,11 +825,11 @@ const Home = () => {
             {ActiveShow ? 
 
          <div>
-          {routesList.map((r) => (
-            <div>
-              <h1 onClick={()=>{setActiveShow(!ActiveShow)}}><strong>{r.summary}</strong></h1>
+          <div className="DetailsPageHeading">
+                <h1 onClick={()=>{setActiveShow(!ActiveShow)}}><strong>
+                <FaArrowLeft />
+                 {latestDirectionsResults.request.origin.query} to {latestDirectionsResults.request.destination.query}</strong></h1>
             </div>
-          ))}
 
                 {
                   stepRouteList.map((step, index) => (
